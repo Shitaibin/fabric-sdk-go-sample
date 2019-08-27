@@ -1,22 +1,28 @@
 package cli
 
 import (
+	"errors"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/ccpackager/gopackager"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
-	"log"
-	"os"
 )
 
 type Cli struct {
-	// Fabric network inforation
+	// Fabric network information
 	ConfigPath string
 
-	CCID      string // Chaincode ID, eq name
+	CCID      string // chaincode ID, eq name
 	CCPath    string // chaincode source path
-	CCGoPath  string
-	CCVersion int
+	CCGoPath  string // GOPATH used for chaincode
+	CCVersion int    // chaincode version
 
 	OrgName  string
 	OrgAdmin string
@@ -68,4 +74,50 @@ func New(cfg string) *Cli {
 	c.CC = cc
 
 	return c
+}
+
+func (c *Cli) InstallCC() error {
+	peers := []string{} // TODO fill peers url, get from config
+	reqPeers := resmgmt.WithTargetEndpoints(peers...)
+
+	// TODO 如果已安装则返回
+	// resp, err := c.RC.QueryInstalledChaincodes(reqPeers)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to query installed cc: %v", err)
+	// }
+	// // resp.
+
+	// pack the chaincode
+	ccPkg, err := gopackager.NewCCPackage(c.CCPath, c.CCGoPath)
+	if err != nil {
+		return err
+	}
+
+	// new request of insalling chaincode
+	req := resmgmt.InstallCCRequest{
+		Name:    c.CCID,
+		Path:    c.CCPath,
+		Version: strconv.Itoa(c.CCVersion),
+		Package: ccPkg,
+		// send request
+	}
+
+	resps, err := c.RC.InstallCC(req, reqPeers)
+	if err != nil {
+		return fmt.Errorf("InstallCC returned error: %v", err)
+	}
+
+	// check other errors
+	var errs []error
+	for _, resp := range resps {
+		if resp.Status != http.StatusOK {
+			errs = append(errs, errors.New(resp.Info))
+		}
+	}
+
+	if len(errs) > 0 {
+		log.Printf("InstallCC errors: %v", errs)
+		return errs[0]
+	}
+	return nil
 }
