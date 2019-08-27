@@ -19,8 +19,8 @@ Directorys:
 - [x] install chaincode
 - [ ] query instantiate chaincode
 - [x] instantiate chaincode
-- [ ] invoke chaincode
-- [ ] query chaincode
+- [x] invoke chaincode
+- [x] query chaincode
 - [ ] upgrade chaincode's policy
 - [ ] invoke chaincode with new policy
 - [ ] query chaincode agian
