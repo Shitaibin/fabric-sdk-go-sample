@@ -11,8 +11,8 @@ Directorys:
 
 ## TODOs
 
-- [ ] config.yaml
-- [ ] chaincode source code
+- [ ] generate sdk config.yaml
+- [x] chaincode source code
 - [ ] struct used for sdk operations
 - [ ] get fabsdk
 - [ ] query installed chaincode 
