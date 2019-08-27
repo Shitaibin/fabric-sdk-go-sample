@@ -13,16 +13,19 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/ccpackager/gopackager"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
+	"github.com/hyperledger/fabric/common/cauthdsl"
 )
 
 type Cli struct {
 	// Fabric network information
 	ConfigPath string
 
-	CCID      string // chaincode ID, eq name
-	CCPath    string // chaincode source path
-	CCGoPath  string // GOPATH used for chaincode
-	CCVersion int    // chaincode version
+	CCID      string   // chaincode ID, eq name
+	CCPath    string   // chaincode source path
+	CCGoPath  string   // GOPATH used for chaincode
+	CCVersion int      // chaincode version
+	CCPolicy  string   // endorser policy
+	CCpeers   []string // peers used by chaincode
 
 	OrgName  string
 	OrgAdmin string
@@ -44,6 +47,7 @@ func New(cfg string) *Cli {
 		CCPath:     "github.com/shitaibin/fabric-sdk-go-sample/chaincode",
 		CCGoPath:   os.Getenv("GOPATH"),
 		CCVersion:  0,
+		CCpeers:    []string{"peer0.org1.example.com"}, // TODO fill peers url, get from config
 		OrgName:    "Org1",
 		OrgAdmin:   "Admin",
 		OrgUser:    "User1",
@@ -77,8 +81,7 @@ func New(cfg string) *Cli {
 }
 
 func (c *Cli) InstallCC() error {
-	peers := []string{} // TODO fill peers url, get from config
-	reqPeers := resmgmt.WithTargetEndpoints(peers...)
+	reqPeers := resmgmt.WithTargetEndpoints(c.CCpeers...)
 
 	// TODO 如果已安装则返回
 	// resp, err := c.RC.QueryInstalledChaincodes(reqPeers)
@@ -93,7 +96,7 @@ func (c *Cli) InstallCC() error {
 		return err
 	}
 
-	// new request of insalling chaincode
+	// new request of installing chaincode
 	req := resmgmt.InstallCCRequest{
 		Name:    c.CCID,
 		Path:    c.CCPath,
@@ -119,5 +122,34 @@ func (c *Cli) InstallCC() error {
 		log.Printf("InstallCC errors: %v", errs)
 		return errs[0]
 	}
+	return nil
+}
+
+func (c *Cli) InstantiateCC() error {
+	reqPeers := resmgmt.WithTargetEndpoints(c.CCpeers...)
+
+	// endorser policy
+	ccPolicy, err := cauthdsl.FromString(c.CCPolicy)
+	if err != nil {
+		return fmt.Errorf("invalid chaincode policy [%s]: %s", c.CCPolicy, err)
+	}
+
+	// new request
+	args := [][]byte{[]byte("init"), []byte("init")}
+	req := resmgmt.InstantiateCCRequest{
+		Name:    c.CCID,
+		Path:    c.CCPath,
+		Version: strconv.Itoa(c.CCVersion),
+		Args:    args,
+		Policy:  ccPolicy,
+	}
+
+	// send request and handle response
+	resp, err := c.RC.InstantiateCC(c.ChannelID, req, reqPeers)
+	if err != nil {
+		return fmt.Errorf("instantiate chaincode error: %s", err)
+	}
+
+	log.Printf("Instantitate chaincode tx: %s", resp.TransactionID)
 	return nil
 }

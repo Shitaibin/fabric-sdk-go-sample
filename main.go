@@ -17,6 +17,10 @@ func main() {
 	}
 
 	// Instantiate
+	if err := c.InstantiateCC(); err != nil {
+		log.Panic(err)
+	}
+
 	// Query
 	// Invoke
 }
