@@ -173,3 +173,25 @@ func (c *Cli) InvokeCC() error {
 	log.Printf("invoke chaincode tx: %s", resp.TransactionID)
 	return nil
 }
+
+func (c *Cli) QueryCC(keys ...string) error {
+	// new channel request for query
+	args := [][]byte{}
+	for _, k := range keys {
+		args = append(args, []byte(k))
+	}
+	req := channel.Request{
+		ChaincodeID: c.CCID,
+		Fcn:         "get",
+		Args:        args,
+	}
+
+	// send request and handle response
+	resp, err := c.CC.Query(req)
+	if err != nil {
+		return fmt.Errorf("query chaincode error: %s", err)
+	}
+
+	log.Printf("query chaincode tx: %s", resp.TransactionID)
+	return nil
+}

@@ -21,10 +21,18 @@ func main() {
 		log.Panic(err)
 	}
 
-	// Query
+	// Query `init`
+	if err := c.QueryCC("init"); err != nil {
+		log.Panic(err)
+	}
 
 	// Invoke
 	if err := c.InvokeCC(); err != nil {
+		log.Panic(err)
+	}
+
+	// 	Query `a`
+	if err := c.QueryCC("a"); err != nil {
 		log.Panic(err)
 	}
 }
