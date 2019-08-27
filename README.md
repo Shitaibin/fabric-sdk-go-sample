@@ -13,12 +13,12 @@ Directorys:
 
 - [ ] write sdk config.yaml for byfn
 - [x] chaincode source code
-- [ ] struct used for sdk operations
-- [ ] get fabsdk
+- [x] struct used for sdk operations
+- [x] get fabsdk
 - [ ] query installed chaincode 
-- [ ] install chaincode
+- [x] install chaincode
 - [ ] query instantiate chaincode
-- [ ] instantiate chaincode
+- [x] instantiate chaincode
 - [ ] invoke chaincode
 - [ ] query chaincode
 - [ ] upgrade chaincode's policy
