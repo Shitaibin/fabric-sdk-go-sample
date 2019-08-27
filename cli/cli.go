@@ -153,3 +153,23 @@ func (c *Cli) InstantiateCC() error {
 	log.Printf("Instantitate chaincode tx: %s", resp.TransactionID)
 	return nil
 }
+
+func (c *Cli) InvokeCC() error {
+	// new channel request for invoke
+	args := [][]byte{[]byte("a"), []byte("10")}
+	req := channel.Request{
+		ChaincodeID: c.CCID,
+		Fcn:         "set",
+		Args:        args,
+	}
+
+	// send request and handle response
+	// TODO 不设置peer，是否会自动选择peer进行背书
+	resp, err := c.CC.Execute(req)
+	if err != nil {
+		return fmt.Errorf("invoke chaincode error: %s", err)
+	}
+
+	log.Printf("invoke chaincode tx: %s", resp.TransactionID)
+	return nil
+}

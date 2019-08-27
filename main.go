@@ -22,5 +22,9 @@ func main() {
 	}
 
 	// Query
+
 	// Invoke
+	if err := c.InvokeCC(); err != nil {
+		log.Panic(err)
+	}
 }
