@@ -7,7 +7,7 @@ Directorys:
 
 - chaincode: chaincode to install
 - config: config files of fabric network
-- service: codes to use chaincode
+- cli: codes to use chaincode
 
 ## TODOs
 
