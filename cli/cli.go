@@ -48,7 +48,8 @@ func New(cfg string) *Cli {
 		CCGoPath:   os.Getenv("GOPATH"),
 		CCVersion:  0,
 		CCpeers:    []string{"peer0.org1.example.com"}, // TODO fill peers url, get from config
-		OrgName:    "Org1",
+		CCPolicy:   "ANY",
+		OrgName:    "org1",
 		OrgAdmin:   "Admin",
 		OrgUser:    "User1",
 		ChannelID:  "mychannel",
@@ -60,6 +61,7 @@ func New(cfg string) *Cli {
 		log.Panicf("failed to create fabric sdk: %s", err)
 	}
 	c.Sdk = sdk
+	log.Println("Initialized fabric sdk")
 
 	// create rc
 	rcp := sdk.Context(fabsdk.WithUser(c.OrgAdmin), fabsdk.WithOrg(c.OrgName))
@@ -68,6 +70,7 @@ func New(cfg string) *Cli {
 		log.Panicf("failed to create resource client: %s", err)
 	}
 	c.RC = rc
+	log.Println("Initialized resource client")
 
 	// create cc
 	ccp := sdk.ChannelContext(c.ChannelID, fabsdk.WithUser(c.OrgUser))
@@ -76,6 +79,7 @@ func New(cfg string) *Cli {
 		log.Panicf("failed to create channel client: %s", err)
 	}
 	c.CC = cc
+	log.Println("Initialized channel client")
 
 	return c
 }
@@ -193,5 +197,6 @@ func (c *Cli) QueryCC(keys ...string) error {
 	}
 
 	log.Printf("query chaincode tx: %s", resp.TransactionID)
+	log.Printf("result: %v", string(resp.Payload))
 	return nil
 }
