@@ -23,44 +23,37 @@ client:
   # Which organization does this application instance belong to? The value must be the name of an org
   # defined under "organizations"
   organization: org1
-
   logging:
     level: info
-
+  cryptoconfig:
+    path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config
   # Some SDKs support pluggable KV stores, the properties under "credentialStore"
   # are implementation specific
   credentialStore:
     # [Optional]. Used by user store. Not needed if all credentials are embedded in configuration
     # and enrollments are performed elswhere.
-    path: "/tmp/hfc-kvs"
+    path: "/tmp/stbstore"
 
-    # [Optional]. Specific to the CryptoSuite implementation used by GO SDK. Software-based implementations
-    # requiring a key store. PKCS#11 based implementations does not.
-    cryptoStore:
-      # Specific to the underlying KeyValueStore that backs the crypto key store.
-      path: /tmp/msp
 
   # [Optional] BCCSP config for the client. Used by GO SDK.
   BCCSP:
     security:
       enabled: true
       default:
-        provider: "PKCS11"
+        provider: "SW"
       hashAlgorithm: "SHA2"
       softVerify: true
       level: 256
-      pin: "98765432"
-      label: "ForFabric"
-      library: "/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so, /usr/lib/softhsm/libsofthsm2.so ,/usr/lib/s390x-linux-gnu/softhsm/libsofthsm2.so, /usr/lib/powerpc64le-linux-gnu/softhsm/libsofthsm2.so, /usr/local/Cellar/softhsm/2.1.0/lib/softhsm/libsofthsm2.so"
 
   tlsCerts:
     # [Optional]. Use system certificate pool when connecting to peers, orderers (for negotiating TLS) Default: false
-    systemCertPool: false
-
+    systemCertPool: true
     # [Optional]. Client key and cert for TLS handshake with peers and orderers
     client:
-      cert:
-        path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/tls.example.com/users/User1@tls.example.com/tls/client.crt
+      # 使用byfn中User1@org1的证书
+      keyfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.key
+      certfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.cert
+
 
 
 #
@@ -101,6 +94,25 @@ channels:
         # Default: true
         eventSource: true
 
+      # Add other peers in mychannel for byfn
+      peer1.org1.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+      peer0.org2.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+      peer1.org2.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
     # [Optional]. The application can use these options to perform channel operations like retrieving channel
     # config etc.
     policies:
@@ -127,26 +139,14 @@ channels:
 organizations:
   org1:
     mspid: Org1MSP
+    # set msp files path
+    cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/users/{username}@org1.example.com/msp
 
-    # Needed to load users crypto certs for this org
-    users:
-      Admin:
-        cert:
-          path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem
-      User1:
-        cert:
-          path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/signcerts/User1@org1.example.com-cert.pem
-
+    # Add peers for org1
     peers:
       - peer0.org1.example.com
+      - peer1.org1.example.com
 
-    # [Optional]. Certificate Authorities issue certificates for identification purposes in a Fabric based
-    # network. Typically certificates provisioning is done in a separate process outside of the
-    # runtime network. Fabric-CA is a special certificate authority that provides a REST APIs for
-    # dynamic certificate management (enroll, revoke, re-enroll). The following section is only for
-    # Fabric-CA servers.
-    certificateAuthorities:
-      - ca.org1.example.com
 
   # the profile will contain public information about organizations other than the one it belongs to.
   # These are necessary information to make transaction lifecycles work, including MSP IDs and
@@ -155,30 +155,19 @@ organizations:
   # fabric-ca registrar enroll ID and secret, etc.
   org2:
     mspid: Org2MSP
+    cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/{username}@org2.example.com/msp
 
-    users:
-      Admin:
-        cert:
-          path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/signcerts/Admin@org2.example.com-cert.pem
-      User1:
-        cert:
-          path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/signcerts/User1@org2.example.com-cert.pem
-
+    # Add peers for org2
     peers:
       - peer0.org2.example.com
+      - peer1.org2.example.com
 
-    certificateAuthorities:
-      - ca.org1.example.com
 
   # Orderer Org name
   ordererorg:
     # Membership Service Provider ID for this organization
     mspID: OrdererMSP
-
-    users:
-      Admin:
-        cert:
-          path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/ordererOrganizations/example.com/users/Admin@example.com/msp/signcerts/Admin@example.com-cert.pem
+    cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/msp
 
 
 #
@@ -189,21 +178,26 @@ organizations:
 orderers:
   orderer.example.com:
     # [Optional] Default: Infer from hostname
-    url: orderer.example.com:7050
+    url: grpcs://orderer.example.com:7050
 
     # these are standard properties defined by the gRPC library
     # they will be passed in as-is to gRPC client constructor
     #TODO to be moved to high level, common for all grpc connections
     grpcOptions:
       ssl-target-name-override: orderer.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
       fail-fast: false
+      allow-insecure: false
 
       #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
       allow-insecure: false
 
     tlsCACerts:
       # Certificate location absolute path
-      path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
+      # Replace to orderer cert path
+      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
 
 #
 # List of peers to send various requests to, including endorsement, query
@@ -213,74 +207,37 @@ peers:
   peer0.org1.example.com:
     # this URL is used to send endorsement and query requests
     # [Optional] Default: Infer from hostname
-    url: peer0.org1.example.com:7051
+    # 表明使用grpcs协议，设置域名和端口号
+    url: grpcs://peer0.org1.example.com:7051
 
     #TODO to be moved to high level, common for all grpc connections
     grpcOptions:
       ssl-target-name-override: peer0.org1.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
       fail-fast: false
+      allow-insecure: false
 
       #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
       allow-insecure: false
 
     tlsCACerts:
       # Certificate location absolute path
-      path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
+      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
 
   peer0.org2.example.com:
-    url: peer0.org2.example.com:8051
-    #TODO to be moved to high level, common for all grpc connections
+    # Replace the port
+    url: peer0.org2.example.com:9051
     grpcOptions:
       ssl-target-name-override: peer0.org2.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
       fail-fast: false
+      allow-insecure: false
 
       #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
       allow-insecure: false
     tlsCACerts:
-      path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
-
-#
-# Fabric-CA is a special kind of Certificate Authority provided by Hyperledger Fabric which allows
-# certificate management to be done via REST APIs. Application may choose to use a standard
-# Certificate Authority instead of Fabric-CA, in which case this section would not be specified.
-#
-certificateAuthorities:
-  ca.org1.example.com:
-    # [Optional] Default: Infer from hostname
-    url: https://ca.org1.example.com:7054
-    tlsCACerts:
-      # Comma-Separated list of paths
-      path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
-      # Client key and cert for SSL handshake with Fabric CA
-      client:
-        key:
-          path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/tls.example.com/users/User1@tls.example.com/tls/client.key
-        cert:
-          path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/tls.example.com/users/User1@tls.example.com/tls/client.crt
-
-    # Fabric-CA supports dynamic user enrollment via REST APIs. A "root" user, a.k.a registrar, is
-    # needed to enroll and invoke new users.
-    registrar:
-      enrollId: admin
-      enrollSecret: adminpw
-    # [Optional] The optional name of the CA.
-    caName: ca.org1.example.com
-  ca.org2.example.com:
-    url: https://ca.org2.example.com:8054
-    tlsCACerts:
-      # Comma-Separated list of paths
-      path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
-      # Client key and cert for SSL handshake with Fabric CA
-      client:
-        key:
-          path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/tls.example.com/users/User1@tls.example.com/tls/client.key
-        cert:
-          path: ${FABRIC_SDK_GO_PROJECT_PATH}/${CRYPTOCONFIG_FIXTURES_PATH}/peerOrganizations/tls.example.com/users/User1@tls.example.com/tls/client.crt
-
-      # Fabric-CA supports dynamic user enrollment via REST APIs. A "root" user, a.k.a registrar, is
-      # needed to enroll and invoke new users.
-    registrar:
-      enrollId: admin
-      enrollSecret: adminpw
-    # [Optional] The optional name of the CA.
-    caName: ca.org2.example.com
+      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
