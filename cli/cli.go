@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,6 +13,8 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/ccpackager/gopackager"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl"
+	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/common"
+	"github.com/pkg/errors"
 )
 
 type Cli struct {
@@ -21,7 +22,7 @@ type Cli struct {
 	ConfigPath string
 
 	CCID      string   // chaincode ID, eq name
-	CCPath    string   // chaincode source path
+	CCPath    string   // chaincode source path, 是GOPATH下的某个目录
 	CCGoPath  string   // GOPATH used for chaincode
 	CCVersion int      // chaincode version
 	CCPolicy  string   // endorser policy
@@ -43,8 +44,8 @@ type Cli struct {
 func New(cfg string) *Cli {
 	c := &Cli{
 		ConfigPath: cfg,
-		CCID:       "chaincode example",
-		CCPath:     "github.com/shitaibin/fabric-sdk-go-sample/chaincode",
+		CCID:       "shitaibincc",
+		CCPath:     "github.com/shitaibin/chaincode", // 相对路径是从GOPAHT/src开始的
 		CCGoPath:   os.Getenv("GOPATH"),
 		CCVersion:  0,
 		CCpeers:    []string{"peer0.org1.example.com"}, // TODO fill peers url, get from config
@@ -97,7 +98,7 @@ func (c *Cli) InstallCC() error {
 	// pack the chaincode
 	ccPkg, err := gopackager.NewCCPackage(c.CCPath, c.CCGoPath)
 	if err != nil {
-		return err
+		return errors.WithMessage(err, "pack chaincode error")
 	}
 
 	// new request of installing chaincode
@@ -111,7 +112,7 @@ func (c *Cli) InstallCC() error {
 
 	resps, err := c.RC.InstallCC(req, reqPeers)
 	if err != nil {
-		return fmt.Errorf("InstallCC returned error: %v", err)
+		return errors.WithMessage(err, "installCC error")
 	}
 
 	// check other errors
@@ -124,7 +125,8 @@ func (c *Cli) InstallCC() error {
 
 	if len(errs) > 0 {
 		log.Printf("InstallCC errors: %v", errs)
-		return errs[0]
+		// TODO 增加已安装查询后，恢复返回错误
+		// return errors.WithMessage(errs[0], "installCC first error")
 	}
 	return nil
 }
@@ -133,9 +135,9 @@ func (c *Cli) InstantiateCC() error {
 	reqPeers := resmgmt.WithTargetEndpoints(c.CCpeers...)
 
 	// endorser policy
-	ccPolicy, err := cauthdsl.FromString(c.CCPolicy)
+	ccPolicy, err := c.genPolicy(c.CCPolicy)
 	if err != nil {
-		return fmt.Errorf("invalid chaincode policy [%s]: %s", c.CCPolicy, err)
+		return errors.WithMessage(err, "gen policy from string error")
 	}
 
 	// new request
@@ -156,6 +158,13 @@ func (c *Cli) InstantiateCC() error {
 
 	log.Printf("Instantitate chaincode tx: %s", resp.TransactionID)
 	return nil
+}
+
+func (c *Cli) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
+	if p == "ANY" {
+		return cauthdsl.SignedByAnyMember([]string{c.OrgName}), nil
+	}
+	return cauthdsl.FromString(c.CCPolicy)
 }
 
 func (c *Cli) InvokeCC() error {
