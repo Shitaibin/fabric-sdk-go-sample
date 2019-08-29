@@ -11,7 +11,7 @@ Directorys:
 
 ## TODOs
 
-- [ ] write sdk config.yaml for byfn
+- [x] write sdk config.yaml for byfn
 - [x] chaincode source code
 - [x] struct used for sdk operations
 - [x] get fabsdk

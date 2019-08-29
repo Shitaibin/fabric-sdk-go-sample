@@ -86,7 +86,7 @@ func New(cfg string) *Cli {
 	return c
 }
 
-func (c *Cli) InstallCC() error {
+func (c *Cli) InstallCC(v int) error {
 	reqPeers := resmgmt.WithTargetEndpoints(c.CCpeers...)
 
 	// TODO 如果已安装则返回
@@ -105,7 +105,7 @@ func (c *Cli) InstallCC() error {
 	req := resmgmt.InstallCCRequest{
 		Name:    c.CCID,
 		Path:    c.CCPath,
-		Version: strconv.Itoa(c.CCVersion),
+		Version: strconv.Itoa(v),
 		Package: ccPkg,
 		// send request
 	}
@@ -138,9 +138,8 @@ func (c *Cli) InstantiateCC() error {
 	ccPolicy, err := c.genPolicy(c.CCPolicy)
 	if err != nil {
 		return errors.WithMessage(err, "gen policy from string error")
-	} else {
-		log.Printf("Instantiate endorser policy: %v", ccPolicy.GetRule().String())
 	}
+	log.Printf("Instantiate endorser policy: %v", ccPolicy.GetRule().String())
 
 	// new request
 	// Attention: args should include `init` for Request not
@@ -176,8 +175,8 @@ func (c *Cli) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
 	return cauthdsl.FromString(c.CCPolicy)
 }
 
-func (c *Cli) InvokeCC() error {
-	reqPeers := channel.WithTargetEndpoints(c.CCpeers...)
+func (c *Cli) InvokeCC(peers []string) error {
+	reqPeers := channel.WithTargetEndpoints(peers...)
 
 	// new channel request for invoke
 	args := packArgs([]string{"a", "b", "10"})
@@ -216,6 +215,43 @@ func (c *Cli) QueryCC(keys ...string) error {
 
 	log.Printf("query chaincode tx: %s", resp.TransactionID)
 	log.Printf("result: %v", string(resp.Payload))
+	return nil
+}
+
+func (c *Cli) UpgradeCC(v int) error {
+	reqPeers := resmgmt.WithTargetEndpoints(c.CCpeers...)
+
+	// endorser policy
+	org1AndOrg2 := "AND('Org1MSP.member','Org2MSP.member')"
+	ccPolicy, err := c.genPolicy(org1AndOrg2)
+	if err != nil {
+		return errors.WithMessage(err, "gen policy from string error")
+	}
+	log.Printf("Upgrade endorser policy: %v", ccPolicy.String())
+
+	// new request
+	// Attention: args should include `init` for Request not
+	// have a method term to call init
+	args := packArgs([]string{"init", "a", "100", "b", "200"})
+	req := resmgmt.UpgradeCCRequest{
+		Name:    c.CCID,
+		Path:    c.CCPath,
+		Version: strconv.Itoa(v),
+		Args:    args,
+		Policy:  ccPolicy,
+	}
+
+	// send request and handle response
+	resp, err := c.RC.UpgradeCC(c.ChannelID, req, reqPeers)
+	if err != nil {
+		// TODO 已经实例化，增加Invoke前的查询操作后删除
+		if strings.Contains(err.Error(), "already exists") {
+			return nil
+		}
+		return errors.WithMessage(err, "instantiate chaincode error")
+	}
+
+	log.Printf("Instantitate chaincode tx: %s", resp.TransactionID)
 	return nil
 }
 
