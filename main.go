@@ -23,11 +23,6 @@ func main() {
 	}
 	log.Println("Chaincode has been instantiated")
 
-	// Query `init`
-	if err := c.QueryCC("init"); err != nil {
-		log.Panicf("Query chaincode error: %v", err)
-	}
-
 	// Invoke
 	if err := c.InvokeCC(); err != nil {
 		log.Panicf("Invoke chaincode error: %v", err)

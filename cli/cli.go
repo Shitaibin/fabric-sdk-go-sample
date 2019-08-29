@@ -1,11 +1,11 @@
 package cli
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
@@ -91,7 +91,6 @@ func (c *Cli) InstallCC() error {
 	// TODO 如果已安装则返回
 	// resp, err := c.RC.QueryInstalledChaincodes(reqPeers)
 	// if err != nil {
-	// 	return fmt.Errorf("failed to query installed cc: %v", err)
 	// }
 	// // resp.
 
@@ -153,7 +152,11 @@ func (c *Cli) InstantiateCC() error {
 	// send request and handle response
 	resp, err := c.RC.InstantiateCC(c.ChannelID, req, reqPeers)
 	if err != nil {
-		return fmt.Errorf("instantiate chaincode error: %s", err)
+		// TODO 已经实例化，增加Invoke前的查询操作后删除
+		if strings.Contains(err.Error(), "already exists") {
+			return nil
+		}
+		return errors.WithMessage(err, "instantiate chaincode error")
 	}
 
 	log.Printf("Instantitate chaincode tx: %s", resp.TransactionID)
@@ -168,6 +171,8 @@ func (c *Cli) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
 }
 
 func (c *Cli) InvokeCC() error {
+	reqPeers := channel.WithTargetEndpoints(c.CCpeers...)
+
 	// new channel request for invoke
 	args := [][]byte{[]byte("a"), []byte("10")}
 	req := channel.Request{
@@ -177,10 +182,10 @@ func (c *Cli) InvokeCC() error {
 	}
 
 	// send request and handle response
-	// TODO 不设置peer，是否会自动选择peer进行背书
-	resp, err := c.CC.Execute(req)
+	// TODO 不设置peer，是否会自动选择peer进行背书, NO
+	resp, err := c.CC.Execute(req, reqPeers)
 	if err != nil {
-		return fmt.Errorf("invoke chaincode error: %s", err)
+		return errors.WithMessage(err, "invoke chaincode error")
 	}
 
 	log.Printf("invoke chaincode tx: %s", resp.TransactionID)
@@ -188,6 +193,8 @@ func (c *Cli) InvokeCC() error {
 }
 
 func (c *Cli) QueryCC(keys ...string) error {
+	reqPeers := channel.WithTargetEndpoints(c.CCpeers...)
+
 	// new channel request for query
 	args := [][]byte{}
 	for _, k := range keys {
@@ -200,9 +207,9 @@ func (c *Cli) QueryCC(keys ...string) error {
 	}
 
 	// send request and handle response
-	resp, err := c.CC.Query(req)
+	resp, err := c.CC.Query(req, reqPeers)
 	if err != nil {
-		return fmt.Errorf("query chaincode error: %s", err)
+		return errors.WithMessage(err, "query chaincode error")
 	}
 
 	log.Printf("query chaincode tx: %s", resp.TransactionID)
