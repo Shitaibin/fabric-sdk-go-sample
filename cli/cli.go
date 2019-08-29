@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
@@ -21,12 +20,9 @@ type Cli struct {
 	// Fabric network information
 	ConfigPath string
 
-	CCID      string   // chaincode ID, eq name
-	CCPath    string   // chaincode source path, 是GOPATH下的某个目录
-	CCGoPath  string   // GOPATH used for chaincode
-	CCVersion int      // chaincode version
-	CCPolicy  string   // endorser policy
-	CCpeers   []string // peers used by chaincode
+	CCID     string // chaincode ID, eq name
+	CCPath   string // chaincode source path, 是GOPATH下的某个目录
+	CCGoPath string // GOPATH used for chaincode
 
 	OrgName  string
 	OrgAdmin string
@@ -44,17 +40,13 @@ type Cli struct {
 func New(cfg string) *Cli {
 	c := &Cli{
 		ConfigPath: cfg,
-		CCID:       "gocc8",
+		CCID:       "gocc9",
 		CCPath:     "github.com/hyperledger/fabric-samples/chaincode/chaincode_example02/go/", // 相对路径是从GOPAHT/src开始的
 		CCGoPath:   os.Getenv("GOPATH"),
-		CCVersion:  0,
-		CCpeers:    []string{"peer0.org1.example.com"}, // TODO fill peers url, get from config
-		// CCPolicy:   "ANY",
-		CCPolicy:  "OR('Org1MSP.member','Org2MSP.member')",
-		OrgName:   "Org1",
-		OrgAdmin:  "Admin",
-		OrgUser:   "User1",
-		ChannelID: "mychannel",
+		OrgName:    "Org1",
+		OrgAdmin:   "Admin",
+		OrgUser:    "User1",
+		ChannelID:  "mychannel",
 	}
 
 	// create sdk
@@ -86,10 +78,11 @@ func New(cfg string) *Cli {
 	return c
 }
 
-func (c *Cli) InstallCC(v int) error {
-	reqPeers := resmgmt.WithTargetEndpoints(c.CCpeers...)
+// TODO 每个节点需要单独安装，
+func (c *Cli) InstallCC(v string, peers []string) error {
+	reqPeers := resmgmt.WithTargetEndpoints(peers...)
 
-	// TODO 如果已安装则返回
+	// TODO 如果peer已安装则跳过
 	// resp, err := c.RC.QueryInstalledChaincodes(reqPeers)
 	// if err != nil {
 	// }
@@ -105,9 +98,8 @@ func (c *Cli) InstallCC(v int) error {
 	req := resmgmt.InstallCCRequest{
 		Name:    c.CCID,
 		Path:    c.CCPath,
-		Version: strconv.Itoa(v),
+		Version: v,
 		Package: ccPkg,
-		// send request
 	}
 
 	resps, err := c.RC.InstallCC(req, reqPeers)
@@ -131,11 +123,12 @@ func (c *Cli) InstallCC(v int) error {
 	return nil
 }
 
-func (c *Cli) InstantiateCC() error {
-	reqPeers := resmgmt.WithTargetEndpoints(c.CCpeers...)
+func (c *Cli) InstantiateCC(v string, peers []string) error {
+	reqPeers := resmgmt.WithTargetEndpoints(peers...)
 
 	// endorser policy
-	ccPolicy, err := c.genPolicy(c.CCPolicy)
+	org1OrOrg2 := "OR('Org1MSP.member','Org2MSP.member')"
+	ccPolicy, err := c.genPolicy(org1OrOrg2)
 	if err != nil {
 		return errors.WithMessage(err, "gen policy from string error")
 	}
@@ -148,7 +141,7 @@ func (c *Cli) InstantiateCC() error {
 	req := resmgmt.InstantiateCCRequest{
 		Name:    c.CCID,
 		Path:    c.CCPath,
-		Version: strconv.Itoa(c.CCVersion),
+		Version: v,
 		Args:    args,
 		Policy:  ccPolicy,
 	}
@@ -172,7 +165,7 @@ func (c *Cli) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
 	if p == "ANY" {
 		return cauthdsl.SignedByAnyMember([]string{c.OrgName}), nil
 	}
-	return cauthdsl.FromString(c.CCPolicy)
+	return cauthdsl.FromString(p)
 }
 
 func (c *Cli) InvokeCC(peers []string) error {
@@ -197,14 +190,14 @@ func (c *Cli) InvokeCC(peers []string) error {
 	return nil
 }
 
-func (c *Cli) QueryCC(keys ...string) error {
-	reqPeers := channel.WithTargetEndpoints(c.CCpeers...)
+func (c *Cli) QueryCC(peer, keys string) error {
+	reqPeers := channel.WithTargetEndpoints(peer)
 
 	// new channel request for query
 	req := channel.Request{
 		ChaincodeID: c.CCID,
 		Fcn:         "query",
-		Args:        packArgs(keys),
+		Args:        packArgs([]string{keys}),
 	}
 
 	// send request and handle response
@@ -218,8 +211,8 @@ func (c *Cli) QueryCC(keys ...string) error {
 	return nil
 }
 
-func (c *Cli) UpgradeCC(v int) error {
-	reqPeers := resmgmt.WithTargetEndpoints(c.CCpeers...)
+func (c *Cli) UpgradeCC(v string, peers []string) error {
+	reqPeers := resmgmt.WithTargetEndpoints(peers...)
 
 	// endorser policy
 	org1AndOrg2 := "AND('Org1MSP.member','Org2MSP.member')"
@@ -236,7 +229,7 @@ func (c *Cli) UpgradeCC(v int) error {
 	req := resmgmt.UpgradeCCRequest{
 		Name:    c.CCID,
 		Path:    c.CCPath,
-		Version: strconv.Itoa(v),
+		Version: v,
 		Args:    args,
 		Policy:  ccPolicy,
 	}
