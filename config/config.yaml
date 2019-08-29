@@ -178,7 +178,7 @@ organizations:
 orderers:
   orderer.example.com:
     # [Optional] Default: Infer from hostname
-    url: grpcs://orderer.example.com:7050
+    url: grpcs://localhost:7050
 
     # these are standard properties defined by the gRPC library
     # they will be passed in as-is to gRPC client constructor
@@ -207,8 +207,9 @@ peers:
   peer0.org1.example.com:
     # this URL is used to send endorsement and query requests
     # [Optional] Default: Infer from hostname
-    # 表明使用grpcs协议，设置域名和端口号
-    url: grpcs://peer0.org1.example.com:7051
+    # 表明使用grpcs协议，设置IP和端口号，使用域名会无法连接
+    # url: grpcs://peer0.org1.example.com:7051
+    url: grpcs://localhost:7051
 
     #TODO to be moved to high level, common for all grpc connections
     grpcOptions:
@@ -228,7 +229,7 @@ peers:
 
   peer0.org2.example.com:
     # Replace the port
-    url: peer0.org2.example.com:9051
+    url: grpcs://localhost:9051
     grpcOptions:
       ssl-target-name-override: peer0.org2.example.com
       keep-alive-time: 0s
