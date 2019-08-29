@@ -13,29 +13,29 @@ func main() {
 
 	// Install
 	if err := c.InstallCC(); err != nil {
-		log.Panic(err)
+		log.Panicf("Intall chaincode error: %v", err)
 	}
-	log.Println("chaincode has been installed")
+	log.Println("Chaincode has been installed")
 
 	// Instantiate
 	if err := c.InstantiateCC(); err != nil {
-		log.Panic(err)
+		log.Panicf("Instantiated chaincode error: %v", err)
 	}
 	log.Println("Chaincode has been instantiated")
 
 	// Query `init`
 	if err := c.QueryCC("init"); err != nil {
-		log.Panic(err)
+		log.Panicf("Query chaincode error: %v", err)
 	}
 
 	// Invoke
 	if err := c.InvokeCC(); err != nil {
-		log.Panic(err)
+		log.Panicf("Invoke chaincode error: %v", err)
 	}
 	log.Println("Invoke chaincode success")
 
 	// 	Query `a`
 	if err := c.QueryCC("a"); err != nil {
-		log.Panic(err)
+		log.Panicf("Query chaincode error: %v", err)
 	}
 }
