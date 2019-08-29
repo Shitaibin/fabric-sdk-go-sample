@@ -49,11 +49,12 @@ func New(cfg string) *Cli {
 		CCGoPath:   os.Getenv("GOPATH"),
 		CCVersion:  0,
 		CCpeers:    []string{"peer0.org1.example.com"}, // TODO fill peers url, get from config
-		CCPolicy:   "ANY",
-		OrgName:    "org1",
-		OrgAdmin:   "Admin",
-		OrgUser:    "User1",
-		ChannelID:  "mychannel",
+		// CCPolicy:   "ANY",
+		CCPolicy:  "OR('Org1MSP.member','Org2MSP.member')",
+		OrgName:   "Org1",
+		OrgAdmin:  "Admin",
+		OrgUser:   "User1",
+		ChannelID: "mychannel",
 	}
 
 	// create sdk
