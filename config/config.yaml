@@ -24,7 +24,7 @@ client:
   # defined under "organizations"
   organization: org1
   logging:
-    level: info
+    level: debug
   cryptoconfig:
     path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config
   # Some SDKs support pluggable KV stores, the properties under "credentialStore"
@@ -71,6 +71,10 @@ channels:
     # deprecated: not recommended, to override any orderer configuration items, entity matchers should be used.
     #    orderers:
     #      - orderer.example.com
+
+    # 不要缺少当前channel的orderer节点
+    orderers:
+      - orderer.example.com
 
     # Required. list of peers from participating orgs
     peers:
@@ -178,7 +182,7 @@ organizations:
 orderers:
   orderer.example.com:
     # [Optional] Default: Infer from hostname
-    url: grpcs://localhost:7050
+    url: localhost:7050
 
     # these are standard properties defined by the gRPC library
     # they will be passed in as-is to gRPC client constructor
