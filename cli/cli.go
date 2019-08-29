@@ -44,7 +44,7 @@ type Cli struct {
 func New(cfg string) *Cli {
 	c := &Cli{
 		ConfigPath: cfg,
-		CCID:       "gocc7",
+		CCID:       "gocc8",
 		CCPath:     "github.com/hyperledger/fabric-samples/chaincode/chaincode_example02/go/", // 相对路径是从GOPAHT/src开始的
 		CCGoPath:   os.Getenv("GOPATH"),
 		CCVersion:  0,
