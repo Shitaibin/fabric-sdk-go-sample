@@ -22,9 +22,11 @@ version: 1.0.0
 client:
   # Which organization does this application instance belong to? The value must be the name of an org
   # defined under "organizations"
-  organization: org1
+  organization: Org1
   logging:
+    # 建议开发人员使用debug日志
     level: debug
+#    level: info
   cryptoconfig:
     path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config
   # Some SDKs support pluggable KV stores, the properties under "credentialStore"
@@ -141,7 +143,7 @@ channels:
 # list of participating organizations in this network
 #
 organizations:
-  org1:
+  Org1:
     mspid: Org1MSP
     # set msp files path
     cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/users/{username}@org1.example.com/msp
@@ -157,7 +159,7 @@ organizations:
   # peers with a public URL to send transaction proposals. The file will not contain private
   # information reserved for members of the organization, such as admin key and certificate,
   # fabric-ca registrar enroll ID and secret, etc.
-  org2:
+  Org2:
     mspid: Org2MSP
     cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/{username}@org2.example.com/msp
 
@@ -182,7 +184,7 @@ organizations:
 orderers:
   orderer.example.com:
     # [Optional] Default: Infer from hostname
-    url: localhost:7050
+    url: grpcs://localhost:7050
 
     # these are standard properties defined by the gRPC library
     # they will be passed in as-is to gRPC client constructor

@@ -44,8 +44,8 @@ type Cli struct {
 func New(cfg string) *Cli {
 	c := &Cli{
 		ConfigPath: cfg,
-		CCID:       "shitaibincc",
-		CCPath:     "github.com/shitaibin/chaincode", // 相对路径是从GOPAHT/src开始的
+		CCID:       "gocc7",
+		CCPath:     "github.com/hyperledger/fabric-samples/chaincode/chaincode_example02/go/", // 相对路径是从GOPAHT/src开始的
 		CCGoPath:   os.Getenv("GOPATH"),
 		CCVersion:  0,
 		CCpeers:    []string{"peer0.org1.example.com"}, // TODO fill peers url, get from config
@@ -137,10 +137,14 @@ func (c *Cli) InstantiateCC() error {
 	ccPolicy, err := c.genPolicy(c.CCPolicy)
 	if err != nil {
 		return errors.WithMessage(err, "gen policy from string error")
+	} else {
+		log.Printf("Instantiate endorser policy: %v", ccPolicy.GetRule().String())
 	}
 
 	// new request
-	args := [][]byte{[]byte("init"), []byte("init")}
+	// Attention: args should include `init` for Request not
+	// have a method term to call init
+	args := packArgs([]string{"init", "a", "100", "b", "200"})
 	req := resmgmt.InstantiateCCRequest{
 		Name:    c.CCID,
 		Path:    c.CCPath,
@@ -164,6 +168,7 @@ func (c *Cli) InstantiateCC() error {
 }
 
 func (c *Cli) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
+	// TODO any bug
 	if p == "ANY" {
 		return cauthdsl.SignedByAnyMember([]string{c.OrgName}), nil
 	}
@@ -174,10 +179,10 @@ func (c *Cli) InvokeCC() error {
 	reqPeers := channel.WithTargetEndpoints(c.CCpeers...)
 
 	// new channel request for invoke
-	args := [][]byte{[]byte("a"), []byte("10")}
+	args := packArgs([]string{"a", "b", "10"})
 	req := channel.Request{
 		ChaincodeID: c.CCID,
-		Fcn:         "set",
+		Fcn:         "invoke",
 		Args:        args,
 	}
 
@@ -196,14 +201,10 @@ func (c *Cli) QueryCC(keys ...string) error {
 	reqPeers := channel.WithTargetEndpoints(c.CCpeers...)
 
 	// new channel request for query
-	args := [][]byte{}
-	for _, k := range keys {
-		args = append(args, []byte(k))
-	}
 	req := channel.Request{
 		ChaincodeID: c.CCID,
-		Fcn:         "get",
-		Args:        args,
+		Fcn:         "query",
+		Args:        packArgs(keys),
 	}
 
 	// send request and handle response
@@ -215,4 +216,12 @@ func (c *Cli) QueryCC(keys ...string) error {
 	log.Printf("query chaincode tx: %s", resp.TransactionID)
 	log.Printf("result: %v", string(resp.Payload))
 	return nil
+}
+
+func packArgs(paras []string) [][]byte {
+	var args [][]byte
+	for _, k := range paras {
+		args = append(args, []byte(k))
+	}
+	return args
 }
