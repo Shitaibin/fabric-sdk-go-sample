@@ -42,7 +42,7 @@ func New(cfg, org, admin, user string) *Cli {
 		OrgAdmin:   admin,
 		OrgUser:    user,
 
-		CCID:      "example5",
+		CCID:      "example2",
 		CCPath:    "github.com/hyperledger/fabric-samples/chaincode/chaincode_example02/go/", // 相对路径是从GOPAHT/src开始的
 		CCGoPath:  os.Getenv("GOPATH"),
 		ChannelID: "mychannel",
@@ -130,7 +130,6 @@ func (c *Cli) InstantiateCC(v string, peers []string) error {
 	if err != nil {
 		return errors.WithMessage(err, "gen policy from string error")
 	}
-	log.Printf("Instantiate endorser policy: %v", ccPolicy.GetRule().String())
 
 	// new request
 	// Attention: args should include `init` for Request not
@@ -215,7 +214,6 @@ func (c *Cli) UpgradeCC(v string, peers []string) error {
 	if err != nil {
 		return errors.WithMessage(err, "gen policy from string error")
 	}
-	log.Printf("Upgrade endorser policy: %v", ccPolicy.String())
 
 	// new request
 	// Attention: args should include `init` for Request not

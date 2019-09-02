@@ -28,28 +28,28 @@ func main() {
 
 func Phase1(cli1, cli2 *cli.Cli) {
 	log.Println("=================== Phase 1 begin ===================")
-	defer log.Println("=================== Phase 1 end ===================\n\n")
+	defer log.Println("=================== Phase 1 end ===================")
 
 	if err := cli1.InstallCC("v1", peers1); err != nil {
 		log.Panicf("Intall chaincode error: %v", err)
 	}
-	log.Println("Chaincode has been installed on org1's peer\n\n")
+	log.Println("Chaincode has been installed on org1's peers")
 
 	if err := cli2.InstallCC("v1", peers2); err != nil {
 		log.Panicf("Intall chaincode error: %v", err)
 	}
-	log.Println("Chaincode has been installed on org2's peer\n\n")
+	log.Println("Chaincode has been installed on org2's peers")
 
 	// InstantiateCC chaincode only need once for each channel
 	if err := cli1.InstantiateCC("v1", peers1); err != nil {
 		log.Panicf("Instantiated chaincode error: %v", err)
 	}
-	log.Println("Chaincode has been instantiated\n\n")
+	log.Println("Chaincode has been instantiated")
 
 	if err := cli1.InvokeCC(peers1); err != nil {
 		log.Panicf("Invoke chaincode error: %v", err)
 	}
-	log.Println("Invoke chaincode success\n\n")
+	log.Println("Invoke chaincode success")
 
 	if err := cli1.QueryCC("peer0.org1.example.com", "a"); err != nil {
 		log.Panicf("Query chaincode error: %v", err)
@@ -59,7 +59,7 @@ func Phase1(cli1, cli2 *cli.Cli) {
 
 func Phase2(cli1, cli2 *cli.Cli) {
 	log.Println("=================== Phase 2 begin ===================")
-	defer log.Println("=================== Phase 2 end ===================\n\n")
+	defer log.Println("=================== Phase 2 end ===================")
 
 	v := "v2"
 
@@ -67,12 +67,12 @@ func Phase2(cli1, cli2 *cli.Cli) {
 	if err := cli1.InstallCC(v, peers1); err != nil {
 		log.Panicf("Intall chaincode error: %v", err)
 	}
-	log.Println("Chaincode has been installed on org1's peer\n\n")
+	log.Println("Chaincode has been installed on org1's peers")
 
 	if err := cli2.InstallCC(v, peers2); err != nil {
 		log.Panicf("Intall chaincode error: %v", err)
 	}
-	log.Println("Chaincode has been installed on org2's peer\n\n")
+	log.Println("Chaincode has been installed on org2's peers")
 
 	// Upgrade chaincode only need once for each channel
 	if err := cli1.UpgradeCC(v, peers1); err != nil {
