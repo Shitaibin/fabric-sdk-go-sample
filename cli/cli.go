@@ -239,6 +239,10 @@ func (c *Cli) UpgradeCC(v string, peers []string) error {
 	return nil
 }
 
+func (c *Cli) Close() {
+	c.sdk.Close()
+}
+
 func packArgs(paras []string) [][]byte {
 	var args [][]byte
 	for _, k := range paras {

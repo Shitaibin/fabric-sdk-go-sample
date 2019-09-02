@@ -17,13 +17,16 @@ var (
 )
 
 func main() {
-	org1 := cli.New(org1CfgPath, "Org1", "Admin", "User1")
-	org2 := cli.New(org2CfgPath, "Org2", "Admin", "User1")
+	org1Client := cli.New(org1CfgPath, "Org1", "Admin", "User1")
+	org2Client := cli.New(org2CfgPath, "Org2", "Admin", "User1")
+
+	defer org1Client.Close()
+	defer org2Client.Close()
 
 	// Install, instantiate, invoke, query
-	Phase1(org1, org2)
+	Phase1(org1Client, org2Client)
 	// Install, upgrade, invoke, query
-	Phase2(org1, org2)
+	Phase2(org1Client, org2Client)
 }
 
 func Phase1(cli1, cli2 *cli.Cli) {
