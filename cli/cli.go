@@ -19,34 +19,33 @@ import (
 type Cli struct {
 	// Fabric network information
 	ConfigPath string
+	OrgName    string
+	OrgAdmin   string
+	OrgUser    string
 
-	CCID     string // chaincode ID, eq name
-	CCPath   string // chaincode source path, 是GOPATH下的某个目录
-	CCGoPath string // GOPATH used for chaincode
+	// sdk clients
+	sdk *fabsdk.FabricSDK
+	rc  *resmgmt.Client
+	cc  *channel.Client
 
-	OrgName  string
-	OrgAdmin string
-	OrgUser  string
-
+	// Same for each peer
 	ChannelID string
-	// ChannelConfigPath string // used when create a channel
-
-	// SDK
-	Sdk *fabsdk.FabricSDK
-	RC  *resmgmt.Client
-	CC  *channel.Client
+	CCID      string // chaincode ID, eq name
+	CCPath    string // chaincode source path, 是GOPATH下的某个目录
+	CCGoPath  string // GOPATH used for chaincode
 }
 
-func New(cfg string) *Cli {
+func New(cfg, org, admin, user string) *Cli {
 	c := &Cli{
 		ConfigPath: cfg,
-		CCID:       "gocc9",
-		CCPath:     "github.com/hyperledger/fabric-samples/chaincode/chaincode_example02/go/", // 相对路径是从GOPAHT/src开始的
-		CCGoPath:   os.Getenv("GOPATH"),
-		OrgName:    "Org1",
-		OrgAdmin:   "Admin",
-		OrgUser:    "User1",
-		ChannelID:  "mychannel",
+		OrgName:    org,
+		OrgAdmin:   admin,
+		OrgUser:    user,
+
+		CCID:      "gocc9",
+		CCPath:    "github.com/hyperledger/fabric-samples/chaincode/chaincode_example02/go/", // 相对路径是从GOPAHT/src开始的
+		CCGoPath:  os.Getenv("GOPATH"),
+		ChannelID: "mychannel",
 	}
 
 	// create sdk
@@ -54,15 +53,15 @@ func New(cfg string) *Cli {
 	if err != nil {
 		log.Panicf("failed to create fabric sdk: %s", err)
 	}
-	c.Sdk = sdk
+	c.sdk = sdk
 	log.Println("Initialized fabric sdk")
 
-	c.RC, c.CC = NewClient(sdk, c.ChannelID, c.OrgName, c.OrgAdmin, c.OrgUser)
+	c.rc, c.cc = NewSdkClient(sdk, c.ChannelID, c.OrgName, c.OrgAdmin, c.OrgUser)
 	return c
 }
 
-// NewClient create resource client and channel client
-func NewClient(sdk *fabsdk.FabricSDK, channelID, orgName, orgAdmin, OrgUser string) (rc *resmgmt.Client, cc *channel.Client) {
+// NewSdkClient create resource client and channel client
+func NewSdkClient(sdk *fabsdk.FabricSDK, channelID, orgName, orgAdmin, OrgUser string) (rc *resmgmt.Client, cc *channel.Client) {
 	var err error
 
 	// create rc
@@ -103,7 +102,7 @@ func (c *Cli) InstallCC(v string, peers []string) error {
 	}
 
 	reqPeers := resmgmt.WithTargetEndpoints(peers...)
-	resps, err := c.RC.InstallCC(req, reqPeers)
+	resps, err := c.rc.InstallCC(req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "installCC error")
 	}
@@ -147,7 +146,7 @@ func (c *Cli) InstantiateCC(v string, peers []string) error {
 
 	// send request and handle response
 	reqPeers := resmgmt.WithTargetEndpoints(peers...)
-	resp, err := c.RC.InstantiateCC(c.ChannelID, req, reqPeers)
+	resp, err := c.rc.InstantiateCC(c.ChannelID, req, reqPeers)
 	if err != nil {
 		// TODO 已经实例化，增加Invoke前的查询操作后删除
 		if strings.Contains(err.Error(), "already exists") {
@@ -180,7 +179,7 @@ func (c *Cli) InvokeCC(peers []string) error {
 	// send request and handle response
 	// peers is needed
 	reqPeers := channel.WithTargetEndpoints(peers...)
-	resp, err := c.CC.Execute(req, reqPeers)
+	resp, err := c.cc.Execute(req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "invoke chaincode error")
 	}
@@ -199,7 +198,7 @@ func (c *Cli) QueryCC(peer, keys string) error {
 
 	// send request and handle response
 	reqPeers := channel.WithTargetEndpoints(peer)
-	resp, err := c.CC.Query(req, reqPeers)
+	resp, err := c.cc.Query(req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "query chaincode error")
 	}
@@ -232,7 +231,7 @@ func (c *Cli) UpgradeCC(v string, peers []string) error {
 
 	// send request and handle response
 	reqPeers := resmgmt.WithTargetEndpoints(peers...)
-	resp, err := c.RC.UpgradeCC(c.ChannelID, req, reqPeers)
+	resp, err := c.rc.UpgradeCC(c.ChannelID, req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "instantiate chaincode error")
 	}

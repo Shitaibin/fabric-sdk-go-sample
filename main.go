@@ -9,11 +9,11 @@ import (
 const cfgPath = "./config/config.yaml"
 
 func main() {
-	c := cli.New(cfgPath)
+	org1 := cli.New(cfgPath, "Org1", "Admin", "User1")
 	// Install, instantiate, invoke, query
-	Phase1(c)
+	Phase1(org1)
 	// Install, upgrade, invoke, query
-	Phase2(c)
+	Phase2(org1)
 }
 
 func Phase1(c *cli.Cli) {
