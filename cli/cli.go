@@ -42,7 +42,7 @@ func New(cfg, org, admin, user string) *Cli {
 		OrgAdmin:   admin,
 		OrgUser:    user,
 
-		CCID:      "example3",
+		CCID:      "example5",
 		CCPath:    "github.com/hyperledger/fabric-samples/chaincode/chaincode_example02/go/", // 相对路径是从GOPAHT/src开始的
 		CCGoPath:  os.Getenv("GOPATH"),
 		ChannelID: "mychannel",
@@ -180,11 +180,11 @@ func (c *Cli) InvokeCC(peers []string) error {
 	// peers is needed
 	reqPeers := channel.WithTargetEndpoints(peers...)
 	resp, err := c.cc.Execute(req, reqPeers)
+	log.Printf("invoke chaincode tx: %s", resp.TransactionID)
 	if err != nil {
 		return errors.WithMessage(err, "invoke chaincode error")
 	}
 
-	log.Printf("invoke chaincode tx: %s", resp.TransactionID)
 	return nil
 }
 
@@ -220,7 +220,8 @@ func (c *Cli) UpgradeCC(v string, peers []string) error {
 	// new request
 	// Attention: args should include `init` for Request not
 	// have a method term to call init
-	args := packArgs([]string{"init", "a", "100", "b", "200"})
+	// Reset a b's value to test the upgrade
+	args := packArgs([]string{"init", "a", "1000", "b", "2000"})
 	req := resmgmt.UpgradeCCRequest{
 		Name:    c.CCID,
 		Path:    c.CCPath,
