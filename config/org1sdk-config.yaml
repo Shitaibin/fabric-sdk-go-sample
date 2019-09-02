@@ -34,7 +34,7 @@ client:
   credentialStore:
     # [Optional]. Used by user store. Not needed if all credentials are embedded in configuration
     # and enrollments are performed elswhere.
-    path: "/tmp/stbstore"
+    path: "/tmp/examplestore"
 
 
   # [Optional] BCCSP config for the client. Used by GO SDK.

@@ -13,58 +13,56 @@ const (
 
 func main() {
 	org1 := cli.New(org1CfgPath, "Org1", "Admin", "User1")
+	org2 := cli.New(org2CfgPath, "Org2", "Admin", "User1")
+
 	// Install, instantiate, invoke, query
-	Phase1(org1)
+	Phase1(org1, org2)
 	// Install, upgrade, invoke, query
-	Phase2(org1)
+	Phase2(org1, org2)
 }
 
-func Phase1(c *cli.Cli) {
+func Phase1(cli1, cli2 *cli.Cli) {
 	log.Println("=================== Phase 1 begin ===================")
 	defer log.Println("=================== Phase 1 end ===================\n\n")
 
-	peers := []string{"peer0.org1.example.com"}
+	peers1 := []string{"peer0.org1.example.com"}
+	peers2 := []string{"peer0.org2.example.com"}
 
-	log.Println("Installing chaincode v1 to peer0.org1")
-	if err := c.InstallCC("v1", peers); err != nil {
+	if err := cli1.InstallCC("v1", peers1); err != nil {
 		log.Panicf("Intall chaincode error: %v", err)
 	}
-	log.Println("Chaincode has been installed\n\n")
+	log.Println("Chaincode has been installed on org1's peer\n\n")
 
-	log.Println("Instantiating chaincode v1")
-	if err := c.InstantiateCC("v1", peers); err != nil {
+	if err := cli2.InstallCC("v1", peers2); err != nil {
+		log.Panicf("Intall chaincode error: %v", err)
+	}
+	log.Println("Chaincode has been installed on org2's peer\n\n")
+
+	if err := cli1.InstantiateCC("v1", peers1); err != nil {
 		log.Panicf("Instantiated chaincode error: %v", err)
 	}
 	log.Println("Chaincode has been instantiated\n\n")
 
-	log.Println("Invoking chaincode on peer0.org1")
-	if err := c.InvokeCC(peers); err != nil {
+	if err := cli1.InvokeCC(peers1); err != nil {
 		log.Panicf("Invoke chaincode error: %v", err)
 	}
 	log.Println("Invoke chaincode success\n\n")
 
-	log.Println("Query chaincode on peer0.org1")
-	if err := c.QueryCC("peer0.org1.example.com", "a"); err != nil {
+	if err := cli1.QueryCC("peer0.org1.example.com", "a"); err != nil {
 		log.Panicf("Query chaincode error: %v", err)
 	}
 	log.Println("Query chaincode success")
 }
 
-func Phase2(c *cli.Cli) {
+func Phase2(cli1, cli2 *cli.Cli) {
 	log.Println("=================== Phase 2 begin ===================")
 	defer log.Println("=================== Phase 2 end ===================\n\n")
 
 	peers := []string{"peer0.org1.example.com", "peer0.org2.example.com"}
 
-	log.Println("Installing chaincode v2 to peer0.org1, peer0.org2")
-	if err := c.InstallCC("v1", peers); err != nil {
-		log.Panicf("Intall chaincode error: %v", err)
-	}
-	log.Println("Chaincode has been installed")
-
 	// TODO 是否要多节点分开升级
 	log.Println("Upgrade chaincode v2")
-	if err := c.UpgradeCC("v2", peers); err != nil {
+	if err := cli1.UpgradeCC("v2", peers); err != nil {
 		log.Panicf("Upgrade chaincode error: %v", err)
 	}
 	log.Println("Upgrade chaincode success")
