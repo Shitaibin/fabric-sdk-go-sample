@@ -6,10 +6,13 @@ import (
 	"github.com/shitaibin/fabric-sdk-go-sample/cli"
 )
 
-const cfgPath = "./config/config.yaml"
+const (
+	org1CfgPath = "./config/org1sdk-config.yaml"
+	org2CfgPath = "./config/org2sdk-config.yaml"
+)
 
 func main() {
-	org1 := cli.New(cfgPath, "Org1", "Admin", "User1")
+	org1 := cli.New(org1CfgPath, "Org1", "Admin", "User1")
 	// Install, instantiate, invoke, query
 	Phase1(org1)
 	// Install, upgrade, invoke, query

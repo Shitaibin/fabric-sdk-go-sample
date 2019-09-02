@@ -22,11 +22,11 @@ version: 1.0.0
 client:
   # Which organization does this application instance belong to? The value must be the name of an org
   # defined under "organizations"
-  organization: Org1
+  organization: Org2
   logging:
     # Develope can using debug to get more information
     level: debug
-#    level: info
+  #    level: info
   cryptoconfig:
     path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config
   # Some SDKs support pluggable KV stores, the properties under "credentialStore"
@@ -34,7 +34,7 @@ client:
   credentialStore:
     # [Optional]. Used by user store. Not needed if all credentials are embedded in configuration
     # and enrollments are performed elswhere.
-    path: "/tmp/stbstore"
+    path: "/tmp/examplestore"
 
 
   # [Optional] BCCSP config for the client. Used by GO SDK.
@@ -52,10 +52,13 @@ client:
     systemCertPool: true
     # [Optional]. Client key and cert for TLS handshake with peers and orderers
     client:
-      # 使用byfn中User1@org1的证书
-      keyfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.key
-      certfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.cert
+      # 使用byfn中User1@org2的证书
+      keyfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/tls/client.key
+      certfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/tls/client.cert
 
+
+
+################################## General part ##################################
 
 
 #
@@ -74,7 +77,6 @@ channels:
     #    orderers:
     #      - orderer.example.com
 
-    # 不要缺少当前channel的orderer节点
     orderers:
       - orderer.example.com
 
