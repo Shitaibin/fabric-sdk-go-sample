@@ -24,7 +24,7 @@ client:
   # defined under "organizations"
   organization: Org1
   logging:
-    # 建议开发人员使用debug日志
+    # Develope can using debug to get more information
     level: debug
 #    level: info
   cryptoconfig:

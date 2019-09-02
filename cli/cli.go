@@ -57,36 +57,36 @@ func New(cfg string) *Cli {
 	c.Sdk = sdk
 	log.Println("Initialized fabric sdk")
 
+	c.RC, c.CC = NewClient(sdk, c.ChannelID, c.OrgName, c.OrgAdmin, c.OrgUser)
+	return c
+}
+
+// NewClient create resource client and channel client
+func NewClient(sdk *fabsdk.FabricSDK, channelID, orgName, orgAdmin, OrgUser string) (rc *resmgmt.Client, cc *channel.Client) {
+	var err error
+
 	// create rc
-	rcp := sdk.Context(fabsdk.WithUser(c.OrgAdmin), fabsdk.WithOrg(c.OrgName))
-	rc, err := resmgmt.New(rcp)
+	rcp := sdk.Context(fabsdk.WithUser(orgAdmin), fabsdk.WithOrg(orgName))
+	rc, err = resmgmt.New(rcp)
 	if err != nil {
 		log.Panicf("failed to create resource client: %s", err)
 	}
-	c.RC = rc
 	log.Println("Initialized resource client")
 
 	// create cc
-	ccp := sdk.ChannelContext(c.ChannelID, fabsdk.WithUser(c.OrgUser))
-	cc, err := channel.New(ccp)
+	ccp := sdk.ChannelContext(channelID, fabsdk.WithUser(OrgUser))
+	cc, err = channel.New(ccp)
 	if err != nil {
 		log.Panicf("failed to create channel client: %s", err)
 	}
-	c.CC = cc
 	log.Println("Initialized channel client")
 
-	return c
+	return rc, cc
 }
 
 // TODO 每个节点需要单独安装，
 func (c *Cli) InstallCC(v string, peers []string) error {
-	reqPeers := resmgmt.WithTargetEndpoints(peers...)
-
 	// TODO 如果peer已安装则跳过
-	// resp, err := c.RC.QueryInstalledChaincodes(reqPeers)
-	// if err != nil {
-	// }
-	// // resp.
 
 	// pack the chaincode
 	ccPkg, err := gopackager.NewCCPackage(c.CCPath, c.CCGoPath)
@@ -102,6 +102,7 @@ func (c *Cli) InstallCC(v string, peers []string) error {
 		Package: ccPkg,
 	}
 
+	reqPeers := resmgmt.WithTargetEndpoints(peers...)
 	resps, err := c.RC.InstallCC(req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "installCC error")
@@ -124,8 +125,6 @@ func (c *Cli) InstallCC(v string, peers []string) error {
 }
 
 func (c *Cli) InstantiateCC(v string, peers []string) error {
-	reqPeers := resmgmt.WithTargetEndpoints(peers...)
-
 	// endorser policy
 	org1OrOrg2 := "OR('Org1MSP.member','Org2MSP.member')"
 	ccPolicy, err := c.genPolicy(org1OrOrg2)
@@ -147,6 +146,7 @@ func (c *Cli) InstantiateCC(v string, peers []string) error {
 	}
 
 	// send request and handle response
+	reqPeers := resmgmt.WithTargetEndpoints(peers...)
 	resp, err := c.RC.InstantiateCC(c.ChannelID, req, reqPeers)
 	if err != nil {
 		// TODO 已经实例化，增加Invoke前的查询操作后删除
@@ -161,7 +161,7 @@ func (c *Cli) InstantiateCC(v string, peers []string) error {
 }
 
 func (c *Cli) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
-	// TODO any bug
+	// TODO bug, this any leads to endorser invalid
 	if p == "ANY" {
 		return cauthdsl.SignedByAnyMember([]string{c.OrgName}), nil
 	}
@@ -169,8 +169,6 @@ func (c *Cli) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
 }
 
 func (c *Cli) InvokeCC(peers []string) error {
-	reqPeers := channel.WithTargetEndpoints(peers...)
-
 	// new channel request for invoke
 	args := packArgs([]string{"a", "b", "10"})
 	req := channel.Request{
@@ -180,7 +178,8 @@ func (c *Cli) InvokeCC(peers []string) error {
 	}
 
 	// send request and handle response
-	// TODO 不设置peer，是否会自动选择peer进行背书, NO
+	// peers is needed
+	reqPeers := channel.WithTargetEndpoints(peers...)
 	resp, err := c.CC.Execute(req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "invoke chaincode error")
@@ -191,8 +190,6 @@ func (c *Cli) InvokeCC(peers []string) error {
 }
 
 func (c *Cli) QueryCC(peer, keys string) error {
-	reqPeers := channel.WithTargetEndpoints(peer)
-
 	// new channel request for query
 	req := channel.Request{
 		ChaincodeID: c.CCID,
@@ -201,6 +198,7 @@ func (c *Cli) QueryCC(peer, keys string) error {
 	}
 
 	// send request and handle response
+	reqPeers := channel.WithTargetEndpoints(peer)
 	resp, err := c.CC.Query(req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "query chaincode error")
@@ -212,8 +210,6 @@ func (c *Cli) QueryCC(peer, keys string) error {
 }
 
 func (c *Cli) UpgradeCC(v string, peers []string) error {
-	reqPeers := resmgmt.WithTargetEndpoints(peers...)
-
 	// endorser policy
 	org1AndOrg2 := "AND('Org1MSP.member','Org2MSP.member')"
 	ccPolicy, err := c.genPolicy(org1AndOrg2)
@@ -235,12 +231,9 @@ func (c *Cli) UpgradeCC(v string, peers []string) error {
 	}
 
 	// send request and handle response
+	reqPeers := resmgmt.WithTargetEndpoints(peers...)
 	resp, err := c.RC.UpgradeCC(c.ChannelID, req, reqPeers)
 	if err != nil {
-		// TODO 已经实例化，增加Invoke前的查询操作后删除
-		if strings.Contains(err.Error(), "already exists") {
-			return nil
-		}
 		return errors.WithMessage(err, "instantiate chaincode error")
 	}
 
