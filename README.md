@@ -5,7 +5,6 @@ It's a sample project for how to use fabric-sdk-go to use chaincode.
 
 Directorys:
 
-- chaincode: chaincode to install
 - config: config files of fabric network
 - cli: codes to use chaincode
 
@@ -26,15 +25,36 @@ Directorys:
 - [x] query chaincode agian
 - [ ] fetch chaincode information, policy included
 
+
 ## Quick start
 
-1. start byfn by `./byfn.sh up`
-
-    ![byfn](./images/byfn.png)
+1. Clone [fabric-samples](https://github.com/hyperledger/fabric-samples) into
+ your $GOPATH, and [fabric-sdk-go-sample](https://github.com/Shitaibin/fabric-sdk-go-sample) into a workspace not in you $GOPATH.
+    ```
+    cd $GOPATH/src/github.com/hyperledger
+    git clone git@github.com:hyperledger/fabric-samples.git
     
-1. run this sample by `go run main.go`，to instantiate a new chaincode and upgrade it. 
+    
+    cd ~
+    git clone git@github.com:Shitaibin/fabric-sdk-go-sample.git
+    ```
+1. Start byfn
+
+    ```bash
+    cd $GOPATH/src/github.com/hyperledger/fabric-samples/first-network
+    ./byfn.sh up
+    
+    ```
+    ![byfn](./images/byfn.png)
+
+1. Modify config.yaml files. All config files in config directory, 
+replace `/Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config` to `${GOPATH}/src/github.com/hyperledger/fabric-samples/first-network/crypto-config`, `${GOPAHT}` is your real GOPATH.  
+    
+1. Run this sample by `go run main.go`，to instantiate a new chaincode and 
+upgrade it. 
 
     ```
+    ➜  cd fabric-sdk-go-sample
     ➜  fabric-sdk-go-sample git:(twoorg) ✗ go run main.go
     2019/09/02 18:45:40 Initialized fabric sdk
     2019/09/02 18:45:40 Initialized resource client
