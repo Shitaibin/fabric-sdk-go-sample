@@ -32,7 +32,7 @@ Directorys:
 
     ![byfn](./images/byfn.png)
     
-1. run this sample by `go run main.go`，to will instantiate a new chaincode and upgrade it. 
+1. run this sample by `go run main.go`，to instantiate a new chaincode and upgrade it. 
 
     ```
     ➜  fabric-sdk-go-sample git:(twoorg) ✗ go run main.go
