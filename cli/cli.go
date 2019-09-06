@@ -124,7 +124,7 @@ func (c *Cli) InstallCC(v string, peer string) error {
 	return nil
 }
 
-func (c *Cli) InstantiateCC(v string, peers []string) error {
+func (c *Cli) InstantiateCC(v string, peer string) error {
 	// endorser policy
 	org1OrOrg2 := "OR('Org1MSP.member','Org2MSP.member')"
 	ccPolicy, err := c.genPolicy(org1OrOrg2)
@@ -145,7 +145,7 @@ func (c *Cli) InstantiateCC(v string, peers []string) error {
 	}
 
 	// send request and handle response
-	reqPeers := resmgmt.WithTargetEndpoints(peers...)
+	reqPeers := resmgmt.WithTargetEndpoints(peer)
 	resp, err := c.rc.InstantiateCC(c.ChannelID, req, reqPeers)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
@@ -207,7 +207,7 @@ func (c *Cli) QueryCC(peer, keys string) error {
 	return nil
 }
 
-func (c *Cli) UpgradeCC(v string, peers []string) error {
+func (c *Cli) UpgradeCC(v string, peer string) error {
 	// endorser policy
 	org1AndOrg2 := "AND('Org1MSP.member','Org2MSP.member')"
 	ccPolicy, err := c.genPolicy(org1AndOrg2)
@@ -229,7 +229,7 @@ func (c *Cli) UpgradeCC(v string, peers []string) error {
 	}
 
 	// send request and handle response
-	reqPeers := resmgmt.WithTargetEndpoints(peers...)
+	reqPeers := resmgmt.WithTargetEndpoints(peer)
 	resp, err := c.rc.UpgradeCC(c.ChannelID, req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "instantiate chaincode error")
