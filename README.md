@@ -14,9 +14,7 @@ Directorys:
 - [x] chaincode source code
 - [x] struct used for sdk operations
 - [x] get fabsdk
-- [ ] query installed chaincode 
-- [x] install chaincode
-- [ ] query instantiate chaincode
+- [x] install chaincode to a target peer
 - [x] instantiate chaincode
 - [x] invoke chaincode
 - [x] query chaincode

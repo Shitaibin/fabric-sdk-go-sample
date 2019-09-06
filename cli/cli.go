@@ -83,9 +83,9 @@ func NewSdkClient(sdk *fabsdk.FabricSDK, channelID, orgName, orgAdmin, OrgUser s
 	return rc, cc
 }
 
-// TODO 每个节点需要单独安装，
-func (c *Cli) InstallCC(v string, peers []string) error {
-	// TODO 如果peer已安装则跳过
+// InstallCC install chaincode for target peer
+func (c *Cli) InstallCC(v string, peer string) error {
+	targetPeer := resmgmt.WithTargetEndpoints(peer)
 
 	// pack the chaincode
 	ccPkg, err := gopackager.NewCCPackage(c.CCPath, c.CCGoPath)
@@ -101,8 +101,7 @@ func (c *Cli) InstallCC(v string, peers []string) error {
 		Package: ccPkg,
 	}
 
-	reqPeers := resmgmt.WithTargetEndpoints(peers...)
-	resps, err := c.rc.InstallCC(req, reqPeers)
+	resps, err := c.rc.InstallCC(req, targetPeer)
 	if err != nil {
 		return errors.WithMessage(err, "installCC error")
 	}
@@ -112,13 +111,15 @@ func (c *Cli) InstallCC(v string, peers []string) error {
 	for _, resp := range resps {
 		if resp.Status != http.StatusOK {
 			errs = append(errs, errors.New(resp.Info))
+		} else if resp.Info == "already installed" {
+			log.Printf("Chaincode %s already installed on peer: %s.\n",
+				c.CCID+"-"+v, resp.Target)
 		}
 	}
 
 	if len(errs) > 0 {
 		log.Printf("InstallCC errors: %v", errs)
-		// TODO 增加已安装查询后，恢复返回错误
-		// return errors.WithMessage(errs[0], "installCC first error")
+		return errors.WithMessage(errs[0], "installCC first error")
 	}
 	return nil
 }
@@ -147,7 +148,6 @@ func (c *Cli) InstantiateCC(v string, peers []string) error {
 	reqPeers := resmgmt.WithTargetEndpoints(peers...)
 	resp, err := c.rc.InstantiateCC(c.ChannelID, req, reqPeers)
 	if err != nil {
-		// TODO 已经实例化，增加Invoke前的查询操作后删除
 		if strings.Contains(err.Error(), "already exists") {
 			return nil
 		}
@@ -237,6 +237,10 @@ func (c *Cli) UpgradeCC(v string, peers []string) error {
 
 	log.Printf("Instantitate chaincode tx: %s", resp.TransactionID)
 	return nil
+}
+
+func (c *Cli) QueryCCInfo(v string, peer string) {
+
 }
 
 func (c *Cli) Close() {
