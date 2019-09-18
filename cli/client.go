@@ -10,7 +10,7 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 )
 
-type Cli struct {
+type Client struct {
 	// Fabric network information
 	ConfigPath string
 	OrgName    string
@@ -18,7 +18,7 @@ type Cli struct {
 	OrgUser    string
 
 	// sdk clients
-	sdk *fabsdk.FabricSDK
+	SDK *fabsdk.FabricSDK
 	rc  *resmgmt.Client
 	cc  *channel.Client
 
@@ -29,8 +29,8 @@ type Cli struct {
 	CCGoPath  string // GOPATH used for chaincode
 }
 
-func New(cfg, org, admin, user string) *Cli {
-	c := &Cli{
+func New(cfg, org, admin, user string) *Client {
+	c := &Client{
 		ConfigPath: cfg,
 		OrgName:    org,
 		OrgAdmin:   admin,
@@ -47,10 +47,11 @@ func New(cfg, org, admin, user string) *Cli {
 	if err != nil {
 		log.Panicf("failed to create fabric sdk: %s", err)
 	}
-	c.sdk = sdk
+	c.SDK = sdk
 	log.Println("Initialized fabric sdk")
 
 	c.rc, c.cc = NewSdkClient(sdk, c.ChannelID, c.OrgName, c.OrgAdmin, c.OrgUser)
+
 	return c
 }
 

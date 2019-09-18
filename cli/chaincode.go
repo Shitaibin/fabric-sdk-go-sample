@@ -14,7 +14,7 @@ import (
 )
 
 // InstallCC install chaincode for target peer
-func (c *Cli) InstallCC(v string, peer string) error {
+func (c *Client) InstallCC(v string, peer string) error {
 	targetPeer := resmgmt.WithTargetEndpoints(peer)
 
 	// pack the chaincode
@@ -54,7 +54,7 @@ func (c *Cli) InstallCC(v string, peer string) error {
 	return nil
 }
 
-func (c *Cli) InstantiateCC(v string, peer string) error {
+func (c *Client) InstantiateCC(v string, peer string) error {
 	// endorser policy
 	org1OrOrg2 := "OR('Org1MSP.member','Org2MSP.member')"
 	ccPolicy, err := c.genPolicy(org1OrOrg2)
@@ -88,7 +88,7 @@ func (c *Cli) InstantiateCC(v string, peer string) error {
 	return nil
 }
 
-func (c *Cli) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
+func (c *Client) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
 	// TODO bug, this any leads to endorser invalid
 	if p == "ANY" {
 		return cauthdsl.SignedByAnyMember([]string{c.OrgName}), nil
@@ -96,7 +96,7 @@ func (c *Cli) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
 	return cauthdsl.FromString(p)
 }
 
-func (c *Cli) InvokeCC(peers []string) error {
+func (c *Client) InvokeCC(peers []string) error {
 	// new channel request for invoke
 	args := packArgs([]string{"a", "b", "10"})
 	req := channel.Request{
@@ -117,7 +117,7 @@ func (c *Cli) InvokeCC(peers []string) error {
 	return nil
 }
 
-func (c *Cli) QueryCC(peer, keys string) error {
+func (c *Client) QueryCC(peer, keys string) error {
 	// new channel request for query
 	req := channel.Request{
 		ChaincodeID: c.CCID,
@@ -137,7 +137,7 @@ func (c *Cli) QueryCC(peer, keys string) error {
 	return nil
 }
 
-func (c *Cli) UpgradeCC(v string, peer string) error {
+func (c *Client) UpgradeCC(v string, peer string) error {
 	// endorser policy
 	org1AndOrg2 := "AND('Org1MSP.member','Org2MSP.member')"
 	ccPolicy, err := c.genPolicy(org1AndOrg2)
@@ -169,12 +169,12 @@ func (c *Cli) UpgradeCC(v string, peer string) error {
 	return nil
 }
 
-func (c *Cli) QueryCCInfo(v string, peer string) {
+func (c *Client) QueryCCInfo(v string, peer string) {
 
 }
 
-func (c *Cli) Close() {
-	c.sdk.Close()
+func (c *Client) Close() {
+	c.SDK.Close()
 }
 
 func packArgs(paras []string) [][]byte {
