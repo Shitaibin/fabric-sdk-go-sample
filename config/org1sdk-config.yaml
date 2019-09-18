@@ -25,8 +25,8 @@ client:
   organization: Org1
   logging:
     # Develope can using debug to get more information
-    level: debug
-#    level: info
+#    level: debug
+    level: info
   cryptoconfig:
     path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config
   # Some SDKs support pluggable KV stores, the properties under "credentialStore"
@@ -198,7 +198,6 @@ orderers:
       keep-alive-timeout: 20s
       keep-alive-permit: false
       fail-fast: false
-      allow-insecure: false
 
       #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
       allow-insecure: false
@@ -227,7 +226,6 @@ peers:
       keep-alive-timeout: 20s
       keep-alive-permit: false
       fail-fast: false
-      allow-insecure: false
 
       #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
       allow-insecure: false
@@ -245,7 +243,6 @@ peers:
       keep-alive-timeout: 20s
       keep-alive-permit: false
       fail-fast: false
-      allow-insecure: false
 
       #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
       allow-insecure: false
