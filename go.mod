@@ -16,6 +16,7 @@ require (
 	github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6 // indirect
 	github.com/magiconair/properties v1.8.0 // indirect
 	github.com/mitchellh/mapstructure v0.0.0-20180511142126-bb74f1db0675 // indirect
+	github.com/modood/table v0.0.0-20181112072225-499dc7fba710 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
 	github.com/pkg/errors v0.8.1
@@ -25,5 +26,6 @@ require (
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/sykesm/zap-logfmt v0.0.2 // indirect
 	go.uber.org/zap v1.10.0 // indirect
+	golang.org/x/arch v0.0.0-20190909030613-46d78d1859ac // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
 )
