@@ -141,7 +141,7 @@ func (c *Client) QueryCC(peer, keys string) error {
 		return errors.WithMessage(err, "query chaincode error")
 	}
 
-	log.Printf("Query chaincode tx response:\n%s\nresult: %v\n\n",
+	log.Printf("Query chaincode tx response:\ntx: %s\nresult: %v\n\n",
 		resp.TransactionID,
 		string(resp.Payload))
 	return nil
