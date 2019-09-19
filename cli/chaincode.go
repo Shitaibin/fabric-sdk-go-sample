@@ -7,6 +7,7 @@ import (
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
+	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/ccpackager/gopackager"
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl"
 	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/common"
@@ -39,11 +40,14 @@ func (c *Client) InstallCC(v string, peer string) error {
 	// check other errors
 	var errs []error
 	for _, resp := range resps {
+		log.Printf("Install  response status: %v", resp.Status)
 		if resp.Status != http.StatusOK {
 			errs = append(errs, errors.New(resp.Info))
-		} else if resp.Info == "already installed" {
+		}
+		if resp.Info == "already installed" {
 			log.Printf("Chaincode %s already installed on peer: %s.\n",
 				c.CCID+"-"+v, resp.Target)
+			return nil
 		}
 	}
 
@@ -54,12 +58,13 @@ func (c *Client) InstallCC(v string, peer string) error {
 	return nil
 }
 
-func (c *Client) InstantiateCC(v string, peer string) error {
+func (c *Client) InstantiateCC(v string, peer string) (fab.TransactionID,
+	error) {
 	// endorser policy
 	org1OrOrg2 := "OR('Org1MSP.member','Org2MSP.member')"
 	ccPolicy, err := c.genPolicy(org1OrOrg2)
 	if err != nil {
-		return errors.WithMessage(err, "gen policy from string error")
+		return "", errors.WithMessage(err, "gen policy from string error")
 	}
 
 	// new request
@@ -79,13 +84,13 @@ func (c *Client) InstantiateCC(v string, peer string) error {
 	resp, err := c.rc.InstantiateCC(c.ChannelID, req, reqPeers)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
-			return nil
+			return "", nil
 		}
-		return errors.WithMessage(err, "instantiate chaincode error")
+		return "", errors.WithMessage(err, "instantiate chaincode error")
 	}
 
 	log.Printf("Instantitate chaincode tx: %s", resp.TransactionID)
-	return nil
+	return resp.TransactionID, nil
 }
 
 func (c *Client) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
@@ -96,7 +101,7 @@ func (c *Client) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
 	return cauthdsl.FromString(p)
 }
 
-func (c *Client) InvokeCC(peers []string) error {
+func (c *Client) InvokeCC(peers []string) (fab.TransactionID, error) {
 	// new channel request for invoke
 	args := packArgs([]string{"a", "b", "10"})
 	req := channel.Request{
@@ -109,12 +114,16 @@ func (c *Client) InvokeCC(peers []string) error {
 	// peers is needed
 	reqPeers := channel.WithTargetEndpoints(peers...)
 	resp, err := c.cc.Execute(req, reqPeers)
-	log.Printf("invoke chaincode tx: %s", resp.TransactionID)
+	log.Printf("Invoke chaincode response:\n"+
+		"id: %v\nvalidate: %v\nchaincode status: %v\n\n",
+		resp.TransactionID,
+		resp.TxValidationCode,
+		resp.ChaincodeStatus)
 	if err != nil {
-		return errors.WithMessage(err, "invoke chaincode error")
+		return "", errors.WithMessage(err, "invoke chaincode error")
 	}
 
-	return nil
+	return resp.TransactionID, nil
 }
 
 func (c *Client) QueryCC(peer, keys string) error {
@@ -132,8 +141,9 @@ func (c *Client) QueryCC(peer, keys string) error {
 		return errors.WithMessage(err, "query chaincode error")
 	}
 
-	log.Printf("query chaincode tx: %s", resp.TransactionID)
-	log.Printf("result: %v", string(resp.Payload))
+	log.Printf("Query chaincode tx response:\n%s\nresult: %v\n\n",
+		resp.TransactionID,
+		string(resp.Payload))
 	return nil
 }
 

@@ -44,12 +44,12 @@ func Phase1(cli1, cli2 *cli.Client) {
 	log.Println("Chaincode has been installed on org2's peers")
 
 	// InstantiateCC chaincode only need once for each channel
-	if err := cli1.InstantiateCC("v1", peer0Org1); err != nil {
+	if _, err := cli1.InstantiateCC("v1", peer0Org1); err != nil {
 		log.Panicf("Instantiated chaincode error: %v", err)
 	}
 	log.Println("Chaincode has been instantiated")
 
-	if err := cli1.InvokeCC([]string{peer0Org1}); err != nil {
+	if _, err := cli1.InvokeCC([]string{peer0Org1}); err != nil {
 		log.Panicf("Invoke chaincode error: %v", err)
 	}
 	log.Println("Invoke chaincode success")
@@ -83,7 +83,8 @@ func Phase2(cli1, cli2 *cli.Client) {
 	}
 	log.Println("Upgrade chaincode success for channel")
 
-	if err := cli1.InvokeCC([]string{"peer0.org1.example.com", "peer0.org2.example.com"}); err != nil {
+	if _, err := cli1.InvokeCC([]string{"peer0.org1.example.com",
+		"peer0.org2.example.com"}); err != nil {
 		log.Panicf("Invoke chaincode error: %v", err)
 	}
 	log.Println("Invoke chaincode success")
