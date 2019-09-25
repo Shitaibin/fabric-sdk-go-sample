@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hyperledger/fabric-sdk-go/pkg/fab/events/deliverclient/seek"
+
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/event"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
@@ -30,7 +32,9 @@ func main() {
 	// New event client
 	cp := org1Client.SDK.ChannelContext(org1Client.ChannelID,
 		fabsdk.WithUser(org1Client.OrgUser))
-	ec, err := event.New(cp, event.WithBlockEvents())
+	ec, err := event.New(cp, event.WithBlockEvents(),
+		event.WithBlockNum(1),
+		event.WithSeekType(seek.FromBlock))
 	if err != nil {
 		log.Printf("Create event client error: %v", err)
 	}
