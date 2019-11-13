@@ -126,6 +126,32 @@ func (c *Client) InvokeCC(peers []string) (fab.TransactionID, error) {
 	return resp.TransactionID, nil
 }
 
+func (c *Client) InvokeCCDelete(peers []string) (fab.TransactionID, error) {
+	log.Println("Invoke delete")
+	// new channel request for invoke
+	args := packArgs([]string{"c"})
+	req := channel.Request{
+		ChaincodeID: c.CCID,
+		Fcn:         "delete",
+		Args:        args,
+	}
+
+	// send request and handle response
+	// peers is needed
+	reqPeers := channel.WithTargetEndpoints(peers...)
+	resp, err := c.cc.Execute(req, reqPeers)
+	log.Printf("Invoke chaincode delete response:\n"+
+		"id: %v\nvalidate: %v\nchaincode status: %v\n\n",
+		resp.TransactionID,
+		resp.TxValidationCode,
+		resp.ChaincodeStatus)
+	if err != nil {
+		return "", errors.WithMessage(err, "invoke chaincode error")
+	}
+
+	return resp.TransactionID, nil
+}
+
 func (c *Client) QueryCC(peer, keys string) error {
 	// new channel request for query
 	req := channel.Request{

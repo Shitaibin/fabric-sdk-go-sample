@@ -30,20 +30,28 @@ func main() {
 	defer org2Client.Close()
 
 	// New event client
-	cp := org1Client.SDK.ChannelContext(org1Client.ChannelID,
-		fabsdk.WithUser(org1Client.OrgUser))
-	ec, err := event.New(cp, event.WithBlockEvents(),
-		event.WithBlockNum(1),
-		event.WithSeekType(seek.FromBlock))
+	cp := org1Client.SDK.ChannelContext(org1Client.ChannelID, fabsdk.WithUser(org1Client.OrgUser))
+
+	ec, err := event.New(
+		cp,
+		event.WithBlockEvents(), // 如果没有，会是filtered
+		// event.WithBlockNum(1), // 从指定区块获取，需要此参数
+		event.WithSeekType(seek.Newest))
 	if err != nil {
 		log.Printf("Create event client error: %v", err)
 	}
 
+	// block event listen
 	defer ec.Unregister(blockListener(ec))
 	defer ec.Unregister(filteredBlockListener(ec))
 
+	// tx listen
 	txIDCh := make(chan string, 100)
 	go txListener(ec, txIDCh)
+
+	// chaincode event listen
+	defer ec.Unregister(chainCodeEventListener(nil, ec))
+
 	DoChainCode(org1Client, txIDCh)
 	close(txIDCh)
 
@@ -129,6 +137,39 @@ func txListener(ec *event.Client, txIDCh chan string) {
 	}
 }
 
+func chainCodeEventListener(c *cli.Client, ec *event.Client) fab.Registration {
+	eventName := ".*"
+	log.Printf("Listen chaincode event: %v", eventName)
+
+	var (
+		ccReg   fab.Registration
+		eventCh <-chan *fab.CCEvent
+		err     error
+	)
+	if c != nil {
+		log.Println("Using client to register chaincode event")
+		ccReg, eventCh, err = c.RegisterChaincodeEvent("mycc", eventName)
+	} else {
+		log.Println("Using event client to register chaincode event")
+		ccReg, eventCh, err = ec.RegisterChaincodeEvent("mycc", eventName)
+	}
+	if err != nil {
+		log.Printf("Register chaincode event error: %v", err.Error())
+		return nil
+	}
+
+	// consume event
+	go func() {
+		for e := range eventCh {
+			log.Printf("Receive cc event, ccid: %v \neventName: %v\n"+
+				"payload: %v \ntxid: %v \nblock: %v \nsourceURL: %v\n",
+				e.ChaincodeID, e.EventName, string(e.Payload), e.TxID, e.BlockNumber, e.SourceURL)
+		}
+	}()
+
+	return ccReg
+}
+
 // Install、Deploy、Invoke、Query、Upgrade
 func DoChainCode(cli1 *cli.Client, txCh chan<- string) {
 	var (
@@ -157,6 +198,10 @@ func DoChainCode(cli1 *cli.Client, txCh chan<- string) {
 		txCh <- string(txid)
 	}
 	log.Println("Invoke chaincode success")
+
+	if txid, err = cli1.InvokeCCDelete([]string{peer0Org1}); err != nil {
+		log.Printf("Invoke chaincode delete error: %v", err)
+	}
 
 	if err := cli1.QueryCC("peer0.org1.example.com", "a"); err != nil {
 		log.Panicf("Query chaincode error: %v", err)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
+	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 )
@@ -76,4 +77,9 @@ func NewSdkClient(sdk *fabsdk.FabricSDK, channelID, orgName, orgAdmin, OrgUser s
 	log.Println("Initialized channel client")
 
 	return rc, cc
+}
+
+// RegisterChaincodeEvent more easy than event client to registering chaincode event.
+func (c *Client) RegisterChaincodeEvent(ccid, eventName string) (fab.Registration, <-chan *fab.CCEvent, error) {
+	return c.cc.RegisterChaincodeEvent(ccid, eventName)
 }
