@@ -105,7 +105,7 @@ func (c *Client) InvokeCC(peers []string) (fab.TransactionID, error) {
 	// new channel request for invoke
 	args := packArgs([]string{"a", "b", "10"})
 	req := channel.Request{
-		ChaincodeID: c.CCID,
+		ChaincodeID: "mycc",
 		Fcn:         "invoke",
 		Args:        args,
 	}
@@ -155,7 +155,7 @@ func (c *Client) InvokeCCDelete(peers []string) (fab.TransactionID, error) {
 func (c *Client) QueryCC(peer, keys string) error {
 	// new channel request for query
 	req := channel.Request{
-		ChaincodeID: c.CCID,
+		ChaincodeID: "mycc",
 		Fcn:         "query",
 		Args:        packArgs([]string{keys}),
 	}

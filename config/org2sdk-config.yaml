@@ -22,13 +22,13 @@ version: 1.0.0
 client:
   # Which organization does this application instance belong to? The value must be the name of an org
   # defined under "organizations"
-  organization: Org2
+  organization: Org1
   logging:
     # Develope can using debug to get more information
-#    level: debug
-      level: info
+    #    level: debug
+    level: info
   cryptoconfig:
-    path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config
+    path: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config
   # Some SDKs support pluggable KV stores, the properties under "credentialStore"
   # are implementation specific
   credentialStore:
@@ -52,9 +52,9 @@ client:
     systemCertPool: true
     # [Optional]. Client key and cert for TLS handshake with peers and orderers
     client:
-      # 使用byfn中User1@org2的证书
-      keyfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/tls/client.key
-      certfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/tls/client.cert
+      # 使用byfn中User1@org1的证书
+      keyfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/tls/client.key
+      certfile: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/tls/client.cert
 
 
 
@@ -77,8 +77,13 @@ channels:
     #    orderers:
     #      - orderer.example.com
 
+    # 不要缺少当前channel的orderer节点
     orderers:
       - orderer.example.com
+    #      - orderer2.example.com
+    #      - orderer3.example.com
+    #      - orderer4.example.com
+    #      - orderer5.example.com
 
     # Required. list of peers from participating orgs
     peers:
@@ -148,7 +153,7 @@ organizations:
   Org1:
     mspid: Org1MSP
     # set msp files path
-    cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/users/{username}@org1.example.com/msp
+    cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/users/{username}@org1.example.com/msp
 
     # Add peers for org1
     peers:
@@ -163,7 +168,7 @@ organizations:
   # fabric-ca registrar enroll ID and secret, etc.
   Org2:
     mspid: Org2MSP
-    cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/{username}@org2.example.com/msp
+    cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/users/{username}@org2.example.com/msp
 
     # Add peers for org2
     peers:
@@ -175,7 +180,7 @@ organizations:
   ordererorg:
     # Membership Service Provider ID for this organization
     mspID: OrdererMSP
-    cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/msp
+    cryptoPath: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/msp
 
 
 #
@@ -190,19 +195,20 @@ orderers:
 
     # these are standard properties defined by the gRPC library
     # they will be passed in as-is to gRPC client constructor
-    #TODO to be moved to high level, common for all grpc connections
     grpcOptions:
       ssl-target-name-override: orderer.example.com
       keep-alive-time: 0s
       keep-alive-timeout: 20s
       keep-alive-permit: false
       fail-fast: false
+
+      #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
       allow-insecure: false
 
     tlsCACerts:
       # Certificate location absolute path
       # Replace to orderer cert path
-      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
+      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
 
 #
 # List of peers to send various requests to, including endorsement, query
@@ -216,7 +222,6 @@ peers:
     # url: grpcs://peer0.org1.example.com:7051
     url: grpcs://localhost:7051
 
-    #TODO to be moved to high level, common for all grpc connections
     grpcOptions:
       ssl-target-name-override: peer0.org1.example.com
       keep-alive-time: 0s
@@ -229,7 +234,27 @@ peers:
 
     tlsCACerts:
       # Certificate location absolute path
-      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
+      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
+
+  peer1.org1.example.com:
+    # this URL is used to send endorsement and query requests
+    # [Optional] Default: Infer from hostname
+    # 表明使用grpcs协议，设置IP和端口号，使用域名会无法连接
+    # url: grpcs://peer0.org1.example.com:7051
+    url: grpcs://localhost:8051
+    grpcOptions:
+      ssl-target-name-override: peer1.org1.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+
+      #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
+      allow-insecure: false
+
+    tlsCACerts:
+      # Certificate location absolute path
+      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
 
   peer0.org2.example.com:
     # Replace the port
@@ -244,4 +269,47 @@ peers:
       #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
       allow-insecure: false
     tlsCACerts:
-      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
+      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
+
+  peer1.org2.example.com:
+    # Replace the port
+    url: grpcs://localhost:10051
+    grpcOptions:
+      ssl-target-name-override: peer1.org2.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+
+      #will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
+      allow-insecure: false
+    tlsCACerts:
+      path: /Users/shitaibin/go/src/github.com/hyperledger/fabric/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
+
+entitymatchers:
+  peer:
+    - pattern: (\w*)peer0.org1.example.com(\w*)
+      urlsubstitutionexp: grpcs://localhost:7051
+      ssltargetoverrideurlsubstitutionexp: peer0.org1.example.com
+      mappedhost: peer0.org1.example.com
+
+    - pattern: (\w*)peer1.org1.example.com(\w*)
+      urlsubstitutionexp: grpcs://localhost:8051
+      ssltargetoverrideurlsubstitutionexp: peer1.org1.example.com
+      mappedhost: peer1.org1.example.com
+
+    - pattern: (\w*)peer0.org2.example.com(\w*)
+      urlsubstitutionexp: grpcs://localhost:9051
+      ssltargetoverrideurlsubstitutionexp: peer0.org2.example.com
+      mappedhost: peer0.org2.example.com
+
+    - pattern: (\w*)peer1.org2.example.com(\w*)
+      urlsubstitutionexp: grpcs://localhost:10051
+      ssltargetoverrideurlsubstitutionexp: peer1.org2.example.com
+      mappedhost: peer1.org2.example.com
+
+  orderer:
+    - pattern: (\w*)orderer.example.com(\w*)
+      urlsubstitutionexp: localhost:7050
+      ssltargetoverrideurlsubstitutionexp: orderer.example.com
+      mappedhost: orderer.example.com

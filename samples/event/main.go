@@ -177,19 +177,20 @@ func DoChainCode(cli1 *cli.Client, txCh chan<- string) {
 		err  error
 	)
 
-	if err := cli1.InstallCC("v1", peer0Org1); err != nil {
-		log.Panicf("Intall chaincode error: %v", err)
-	}
-	log.Println("Chaincode has been installed on org1's peers")
-
-	// InstantiateCC chaincode only need once for each channel
-	if txid, err = cli1.InstantiateCC("v1", peer0Org1); err != nil {
-		log.Panicf("Instantiated chaincode error: %v", err)
-	}
-	if txid != "" {
-		txCh <- string(txid)
-	}
-	log.Println("Chaincode has been instantiated")
+	// ccVersion := "v1"
+	// if err := cli1.InstallCC(ccVersion, peer0Org1); err != nil {
+	// 	log.Panicf("Intall chaincode error: %v", err)
+	// }
+	// log.Println("Chaincode has been installed on org1's peers")
+	//
+	// // InstantiateCC chaincode only need once for each channel
+	// if txid, err = cli1.InstantiateCC(ccVersion, peer0Org1); err != nil {
+	// 	log.Panicf("Instantiated chaincode error: %v", err)
+	// }
+	// if txid != "" {
+	// 	txCh <- string(txid)
+	// }
+	// log.Println("Chaincode has been instantiated")
 
 	if txid, err = cli1.InvokeCC([]string{peer0Org1}); err != nil {
 		log.Panicf("Invoke chaincode error: %v", err)

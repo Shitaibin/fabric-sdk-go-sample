@@ -48,12 +48,12 @@ Directorys:
 1. Modify config.yaml files. All config files in config directory, 
 replace `/Users/shitaibin/go/src/github.com/hyperledger/fabric-samples/first-network/crypto-config` to `${GOPATH}/src/github.com/hyperledger/fabric-samples/first-network/crypto-config`, `${GOPAHT}` is your real GOPATH.  
     
-1. Run this sample by `go run main.go`，to instantiate a new chaincode and 
+1. Run chaincode sample by `go run main.go`，to instantiate a new chaincode and
 upgrade it. 
 
     ```
-    ➜  cd fabric-sdk-go-sample
-    ➜  fabric-sdk-go-sample git:(twoorg) ✗ go run main.go
+    ➜  cd fabric-sdk-go-sample/samples/chaincode
+    ➜  chaincode git:(twoorg) ✗ go run main.go
     2019/09/02 18:45:40 Initialized fabric sdk
     2019/09/02 18:45:40 Initialized resource client
     2019/09/02 18:45:40 Initialized channel client
@@ -84,3 +84,10 @@ upgrade it.
     2019/09/02 18:46:45 =================== Phase 2 end ===================
     ```
     ![byfn-sdk](./images/byfn-sdk.png)
+
+1. Run event sample:
+
+    ```
+    $ cd fabric-sdk-go-sample/samples/
+    $ go run main.go
+    ```
