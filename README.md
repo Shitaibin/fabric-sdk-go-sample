@@ -88,6 +88,6 @@ upgrade it.
 1. Run event sample:
 
     ```
-    $ cd fabric-sdk-go-sample/samples/
+    $ cd fabric-sdk-go-sample/samples/event
     $ go run main.go
     ```
